@@ -15,7 +15,11 @@ class Controller:
         self._view.update_page()
 
     def handleCreaGrafo(self, e):
-        pass
+        genere = self._view.ddGenre.value
+        self._model.buildGraph(genere)
+        nodi, archi = self._model.getDetails()
+        lista = self._model.getOutput()
+        nodoBest, valore = self._model.getBestNodo()
 
     def handleCreaGrafo(self,e):
         pass

@@ -1,10 +1,7 @@
 import itertools
 from collections import defaultdict
-
 import networkx as nx
-
 from database.DAO import DAO
-
 
 class Model:
     def __init__(self):
@@ -19,11 +16,8 @@ class Model:
             self._idMapGeneri[el.GenreId] = el
 
     def buildGraph(self, genere):
-        chiave = 0
         self._grafo.clear()
-        for key, val in self._idMapGeneri.items():
-            if val.Name == genere:
-                chiave = key
+        chiave = self.getGenere(genere)
 
         artisti = DAO.getArtisti(int(chiave))
         listaA = []
@@ -32,13 +26,8 @@ class Model:
 
         self._grafo.add_nodes_from(artisti)
 
-        dictP = self.calcolaPopolarità()
-        sortedDictP = sorted(dictP.items(), key=lambda x: x[0])
-        for i in sortedDictP:
-            print(i)
-        dictC = self.calcolaClienti()
-        for key, val in dictC.items():
-            print(key, val)
+        dictP = self.calcolaPopolarità(genere)
+        dictC = self.calcolaClienti(genere)
 
         for key, val in dictC.items():
             listaC = []
@@ -46,33 +35,32 @@ class Model:
                 if el in listaA:
                     listaC.append(el)
             if len(listaC) > 1:
-                print(listaC)
                 myEdges = itertools.combinations(listaC, 2)
                 for i in myEdges:
                     if dictP[i[0]] > dictP[i[1]] and not self._grafo.has_edge(self._idMapArtisti[i[0]], self._idMapArtisti[i[1]]):
-                        print("---------------------------------", i[0], i[1], dictP[i[0]] + dictP[i[1]])
                         self._grafo.add_edge(self._idMapArtisti[i[0]], self._idMapArtisti[i[1]], weight = dictP[i[0]] + dictP[i[1]])
                     elif dictP[i[0]] < dictP[i[1]] and not self._grafo.has_edge(self._idMapArtisti[i[1]], self._idMapArtisti[i[0]]):
                         self._grafo.add_edge(self._idMapArtisti[i[1]], self._idMapArtisti[i[0]], weight = dictP[i[0]] + dictP[i[1]])
-                    #else:
-                        #self._grafo.add_edge(self._idMapArtisti[i[0]], self._idMapArtisti[i[1]],weight=dictP[i[0]] + dictP[i[1]])
-                        #self._grafo.add_edge(self._idMapArtisti[i[1]], self._idMapArtisti[i[0]],weight=dictP[i[0]] + dictP[i[1]])
+                    elif dictP[i[0]] == dictP[i[1]] and not self._grafo.has_edge(self._idMapArtisti[i[1]], self._idMapArtisti[i[0]]):
+                        self._grafo.add_edge(self._idMapArtisti[i[0]], self._idMapArtisti[i[1]],weight=dictP[i[0]] + dictP[i[1]])
+                        self._grafo.add_edge(self._idMapArtisti[i[1]], self._idMapArtisti[i[0]],weight=dictP[i[0]] + dictP[i[1]])
 
-        listaO = self.getOutput()
-        print(listaO)
-
-    def calcolaPopolarità(self):
+    def calcolaPopolarità(self, genere):
         compensi = DAO.getEdges()
         dizionario = defaultdict(int)
         for el in compensi:
-            dizionario[el.ArtistId] += 1
+            chiave = self.getGenere(genere)
+            if chiave == el.GenreId:
+                dizionario[el.ArtistId] += 1
         return dizionario
 
-    def calcolaClienti(self):
+    def calcolaClienti(self, genere):
         compensi = DAO.getEdges()
         dizionario = defaultdict(set)
         for el in compensi:
-            dizionario[el.CustomerId].add(el.ArtistId)
+            chiave = self.getGenere(genere)
+            if chiave == el.GenreId:
+                dizionario[el.CustomerId].add(el.ArtistId)
         return dizionario
 
     def getOutput(self):
@@ -84,10 +72,23 @@ class Model:
             lista.append(data["weight"])
             listaO.append(lista)
         listaO.sort(key = lambda x: x[2], reverse=True)
-        print(listaO)
+        listaD = listaO[:5]
+        return listaD
+
+    def getBestNodo(self):
+        nodo = max(self._grafo.nodes, key=lambda v: self._grafo.out_degree(v, weight='weight') - self._grafo.in_degree(v, weight='weight'))
+        valore = self._grafo.out_degree(nodo, weight='weight')- self._grafo.in_degree(nodo, weight='weight')
+        return nodo, valore
 
     def getAllGeneri(self):
         return DAO.getAllGeneri()
 
     def getDetails(self):
         return len(self._grafo.nodes), len(self._grafo.edges)
+
+    def getGenere(self, genere):
+        chiave = 0
+        for key, val in self._idMapGeneri.items():
+            if val.Name == genere:
+                chiave = key
+        return chiave

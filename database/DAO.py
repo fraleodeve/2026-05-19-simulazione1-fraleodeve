@@ -70,7 +70,7 @@ class DAO():
         conn = DBConnect.get_connection()
         cursor = conn.cursor(dictionary=True)
 
-        query = """select i2.CustomerId, a.ArtistId, a.Name, (i.UnitPrice * i.Quantity) as costo
+        query = """select i2.CustomerId, a.ArtistId, t.GenreId, a.Name, (i.UnitPrice * i.Quantity) as costo
                     from invoiceline i, invoice i2, track t, artist a, album a2 
                     where i.InvoiceId = i2.InvoiceId and i.TrackId = t.TrackId and t.AlbumId = a2.AlbumId and a2.ArtistId = a.ArtistId"""
         cursor.execute(query)
