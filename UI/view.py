@@ -1,6 +1,5 @@
 import flet as ft
 
-
 class View(ft.UserControl):
     def __init__(self, page: ft.Page):
         super().__init__()
@@ -9,20 +8,22 @@ class View(ft.UserControl):
         self._page.title = "Lab11-Simulazione esame"
         self._page.horizontal_alignment = 'CENTER'
         self._page.theme_mode = ft.ThemeMode.LIGHT
+
         # controller (it is not initialized. Must be initialized in the main, after the controller is created)
         self._controller = None
+
         # graphical elements
         self._title = None
-        self.txt_name = None
-        self.btn_hello = None
+        self._ddGenre = None
+        self._btnCreaGrafo = None
+        self._ddArtist = None
+        self._btnCreaGrafo = None
         self.txt_result = None
-        self.txt_container = None
 
     def load_interface(self):
         # title
         self._title = ft.Text("TdP-Simulazione esame Chinook", color="blue", size=24)
         self._page.controls.append(self._title)
-
 
         self._ddGenre = ft.Dropdown(label="Genere", width=250)
         self._controller.fillDDGenre()
@@ -33,8 +34,8 @@ class View(ft.UserControl):
                       alignment=ft.MainAxisAlignment.CENTER)
         self._page.controls.append(row1)
 
-        self._ddArtist = ft.Dropdown(label="Artist", width=250)
-        self._btnCreaGrafo = ft.ElevatedButton(text="Trova Cammino", on_click=self._controller.handleCammino, width=250)
+        self._ddArtist = ft.Dropdown(label="Artist", width=250, disabled=True)
+        self._btnCreaGrafo = ft.ElevatedButton(text="Trova Cammino", on_click=self._controller.handleCammino, width=250, disabled = True)
 
         row2 = ft.Row([self._ddArtist, self._btnCreaGrafo],
                       alignment=ft.MainAxisAlignment.CENTER)
