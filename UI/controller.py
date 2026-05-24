@@ -52,7 +52,7 @@ class Controller:
             self._view.update_page()
             return
 
-        lista = self._model.cercaSoluzione(artista)
+        lista = self._model.cercaSoluzione2(artista)
         self._view.txt_result.controls.clear()
         self._view.txt_result.controls.append(ft.Text(f"Il cammino partendo da {artista}:"))
         for el in lista:

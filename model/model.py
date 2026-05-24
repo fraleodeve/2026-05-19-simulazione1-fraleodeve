@@ -24,14 +24,41 @@ class Model:
         parziale = [nodo]
 
         # self.ricorsione(float("-inf"), parziale)
-        self._ricorsione(parziale)
+        self.ricorsione2(parziale)
 
         print(nx.descendants(self._grafo, nodo))
         print(f"----{self._soluzione_migliore}")
 
         return self._soluzione_migliore
 
-    def ricorsione(self, peso_ulitmo_arco, parziale):
+    def cercaSoluzione2(self, artista):
+        # input: solo nodo di partenza
+        # output: lista nodi da attraversare
+        self._soluzione_migliore = []
+        nodo = self.getArtista(artista)
+        parziale = [nodo]
+
+        for v in self._grafo.neighbors(nodo):
+            print(f"--------------------------------")
+            print(f"Il primo nodo è: {v}")
+            print(f"Il peso è: {self._grafo[nodo][v]}")
+            parziale.append(v)
+            self.ricorsione3(parziale)
+            parziale.pop()
+
+        print(f"----{self._soluzione_migliore}")
+
+        lista = []
+        for i in range(0, len(self._soluzione_migliore)-1):
+            nodo_p = self._soluzione_migliore[i]
+            nodo_a = self._soluzione_migliore[i+1]
+            pesoE = self._grafo[nodo_p][nodo_a][0]["weight"]
+            lista.append((nodo_p, nodo_a, pesoE))
+        print(lista)
+
+        return self._soluzione_migliore
+
+    def ricorsione1(self, peso_ulitmo_arco, parziale):
         if len(parziale) > len(self._soluzione_migliore):
             self._soluzione_migliore = copy.deepcopy(parziale)
 
@@ -41,10 +68,10 @@ class Model:
             peso_arco_corrente = self._grafo[nodo_corrente][vicino][0]["weight"]
             if vicino not in parziale and peso_arco_corrente > peso_ulitmo_arco:
                 parziale.append(vicino)
-                self.ricorsione(peso_arco_corrente, parziale)
+                self.ricorsione1(peso_arco_corrente, parziale)
                 parziale.pop()
 
-    def _ricorsione(self, parziale):
+    def ricorsione2(self, parziale):
         if len(parziale) > len(self._soluzione_migliore):
             self._soluzione_migliore = copy.deepcopy(parziale)
 
@@ -59,8 +86,27 @@ class Model:
                 if peso <= peso_precedente:
                     continue
             parziale.append(vicino)
-            self._ricorsione(parziale)
+            self.ricorsione2(parziale)
             parziale.pop()
+
+    def ricorsione3(self, parziale):
+        # 1) condizione ottimalità: verifico se parziale migliore del best
+        if len(parziale) > len(self._soluzione_migliore):
+            self._soluzione_migliore = copy.deepcopy(parziale)
+            print(parziale, self._soluzione_migliore)
+
+        # 2) condizione di terminazione: verifico se posso continuare (quando non ha più senso continuare)
+        # qua non c'è limite
+
+        # 3) faccio ricorsione
+        for v in self._grafo.neighbors(parziale[-1]):
+            print(parziale[-1], v, self._grafo[parziale[-1]][v], self._grafo[parziale[-2]][parziale[-1]])
+            # devo verificare che arco sia crescente rispetto ad arco di prima
+            pesoE = self._grafo[parziale[-1]][v][0]["weight"]
+            if self._grafo[parziale[-2]][parziale[-1]][0]["weight"] < pesoE and v not in parziale:
+                parziale.append(v)
+                self.ricorsione2(parziale)
+                parziale.pop()
 
     def buildGraph(self, genere):
         self._grafo.clear()
